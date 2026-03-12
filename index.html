@@ -58,6 +58,7 @@
             }
         }
         .map-section {
+            position: relative;
             border-right: 1px solid #f0f0f0;
             min-height: 420px;
         }
@@ -66,10 +67,125 @@
             height: 100%;
             min-height: 420px;
         }
+        .map-search {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            right: 12px;
+            display: flex;
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+        .map-search input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 0.8rem;
+        }
+        .map-search button {
+            border: none;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            background: #1e88e5;
+            color: #fff;
+            white-space: nowrap;
+        }
         .plan-section {
             padding: 20px 24px 24px;
             max-height: 600px;
             overflow-y: auto;
+        }
+        .editor {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: #f7f9fc;
+            border: 1px solid #e0e7ff;
+            font-size: 0.85rem;
+        }
+        .editor-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .editor-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .editor-row label {
+            width: 60px;
+            font-size: 0.78rem;
+            color: #607d8b;
+        }
+        .editor-row input,
+        .editor-row textarea {
+            flex: 1;
+            padding: 5px 7px;
+            border-radius: 6px;
+            border: 1px solid #c5cae9;
+            font-size: 0.8rem;
+        }
+        .editor-row textarea {
+            resize: vertical;
+            min-height: 40px;
+        }
+        .editor-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .editor button {
+            border: none;
+            border-radius: 999px;
+            padding: 5px 12px;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+        .btn-save {
+            background: #1e88e5;
+            color: #fff;
+        }
+        .btn-cancel {
+            background: #eceff1;
+            color: #455a64;
+        }
+        .item.selected {
+            background: #e3f2fd;
+        }
+        .day-add-btn {
+            margin: 6px 0 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px dashed #90caf9;
+            background: #e3f2fd;
+            color: #1565c0;
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+        .item-move-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-left: 2px;
+        }
+        .item-move-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.65rem;
+            color: #90a4ae;
+            padding: 0;
+            line-height: 1;
         }
         .day {
             margin-bottom: 20px;
@@ -155,12 +271,14 @@
 <body>
     <div class="page">
         <header>
-            <h1>경주 2박 3일 여행 가이드</h1>
-            <p>불국사 · 대릉원 · 첨성대 · 황리단길까지 핵심 코스만 골라서 보는 일정입니다.</p>
-            <div class="tag">가볍게 보기 좋은 기본 코스</div>
+            <h1>경주 2박 3일 여행</h1>
         </header>
         <main>
             <section class="map-section">
+                <div class="map-search">
+                    <input id="map-search-input" type="text" placeholder="지도에서 찾고 싶은 장소를 입력하세요 (예: 카페, 불국사 입구 등)">
+                    <button type="button" id="map-search-btn">검색</button>
+                </div>
                 <div id="map"></div>
             </section>
             <section class="plan-section">
@@ -200,6 +318,7 @@
                             </div>
                         </li>
                     </ul>
+                    <button type="button" class="day-add-btn">이 날 일정 추가하기</button>
                 </div>
                 <div class="day">
                     <div class="day-title">
@@ -237,6 +356,7 @@
                             </div>
                         </li>
                     </ul>
+                    <button type="button" class="day-add-btn">이 날 일정 추가하기</button>
                 </div>
                 <div class="day">
                     <div class="day-title">
@@ -267,6 +387,29 @@
                         </li>
                     </ul>
                     <p class="hint-text">각 일정 카드를 클릭하면 지도에서 해당 위치로 이동합니다.</p>
+                    <button type="button" class="day-add-btn">이 날 일정 추가하기</button>
+                </div>
+                <div class="editor" id="item-editor" style="display:none;">
+                    <div class="editor-title">
+                        <span>선택한 일정 편집</span>
+                        <small id="editor-day-label"></small>
+                    </div>
+                    <div class="editor-row">
+                        <label for="edit-time">시간</label>
+                        <input id="edit-time" type="time">
+                    </div>
+                    <div class="editor-row">
+                        <label for="edit-title">제목</label>
+                        <input id="edit-title" type="text" placeholder="장소/일정 이름">
+                    </div>
+                    <div class="editor-row">
+                        <label for="edit-memo">메모</label>
+                        <textarea id="edit-memo" placeholder="간단한 설명"></textarea>
+                    </div>
+                    <div class="editor-actions">
+                        <button type="button" class="btn-cancel" id="editor-cancel">닫기</button>
+                        <button type="button" class="btn-save" id="editor-save">저장</button>
+                    </div>
                 </div>
             </section>
         </main>
@@ -275,6 +418,7 @@
     <script>
         // 기본 중심 좌표: 경주 시내 근처
         const defaultCenter = new kakao.maps.LatLng(35.842642, 129.211493);
+        const STORAGE_KEY = 'gyeongjuScheduleV1';
 
         const mapContainer = document.getElementById('map');
         const mapOption = {
@@ -285,6 +429,28 @@
         const map = new kakao.maps.Map(mapContainer, mapOption);
         const bounds = new kakao.maps.LatLngBounds();
         const geocoder = new kakao.maps.services.Geocoder();
+        const places = new kakao.maps.services.Places();
+
+        // 검색 UI
+        const mapSearchInput = document.getElementById('map-search-input');
+        const mapSearchBtn = document.getElementById('map-search-btn');
+        let searchMarker = null;
+
+        // 편집기 엘리먼트
+        const editor = document.getElementById('item-editor');
+        const editTime = document.getElementById('edit-time');
+        const editTitle = document.getElementById('edit-title');
+        const editMemo = document.getElementById('edit-memo');
+        const editorDayLabel = document.getElementById('editor-day-label');
+        const editorSave = document.getElementById('editor-save');
+        const editorCancel = document.getElementById('editor-cancel');
+
+        let selectedItem = null;
+        const markersById = new Map();
+
+        function getItems() {
+            return document.querySelectorAll('.item');
+        }
 
         function addMarker(lat, lng, title) {
             const position = new kakao.maps.LatLng(lat, lng);
@@ -297,34 +463,343 @@
             return marker;
         }
 
-        // 일정 리스트에서 좌표 읽어서 마커 생성
-        const items = document.querySelectorAll('.item');
-        const markers = [];
+        function focusOnPosition(lat, lng, title) {
+            const moveLatLng = new kakao.maps.LatLng(lat, lng);
+            map.panTo(moveLatLng);
 
-        items.forEach((item, index) => {
-            const lat = parseFloat(item.getAttribute('data-lat'));
-            const lng = parseFloat(item.getAttribute('data-lng'));
-            const title = item.getAttribute('data-title') || item.querySelector('.place')?.textContent.trim();
+            const infoWindow = new kakao.maps.InfoWindow({
+                content: '<div style="padding:6px 10px;font-size:12px;">' + (title || '') + '</div>'
+            });
+
+            if (searchMarker) {
+                infoWindow.open(map, searchMarker);
+            } else {
+                infoWindow.open(map);
+            }
+        }
+
+        // 저장된 데이터가 있으면 불러오기
+        const savedJson = localStorage.getItem(STORAGE_KEY);
+        let savedData = null;
+        if (savedJson) {
+            try {
+                savedData = JSON.parse(savedJson);
+            } catch (e) {
+                console.warn('저장된 일정을 불러오지 못했습니다.', e);
+            }
+        }
+
+        function attachMoveButtons(item) {
+            if (item.querySelector('.item-move-wrap')) return;
+
+            const timeEl = item.querySelector('.time');
+            if (!timeEl) return;
+
+            const wrap = document.createElement('div');
+            wrap.className = 'item-move-wrap';
+
+            const upBtn = document.createElement('button');
+            upBtn.type = 'button';
+            upBtn.className = 'item-move-btn';
+            upBtn.textContent = '▲';
+
+            const downBtn = document.createElement('button');
+            downBtn.type = 'button';
+            downBtn.className = 'item-move-btn';
+            downBtn.textContent = '▼';
+
+            wrap.appendChild(upBtn);
+            wrap.appendChild(downBtn);
+
+            const container = document.createElement('div');
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.alignItems = 'center';
+            container.appendChild(wrap);
+
+            timeEl.parentNode.insertBefore(container, timeEl.nextSibling);
+
+            function moveItem(direction) {
+                const li = item;
+                const parent = li.parentElement;
+                if (!parent) return;
+
+                if (direction === 'up') {
+                    const prev = li.previousElementSibling;
+                    if (prev && prev.classList.contains('item')) {
+                        parent.insertBefore(li, prev);
+                    }
+                } else if (direction === 'down') {
+                    const next = li.nextElementSibling;
+                    if (next && next.classList.contains('item')) {
+                        parent.insertBefore(next, li);
+                    }
+                }
+                saveAllItemsToStorage();
+            }
+
+            upBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moveItem('up');
+            });
+            downBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                moveItem('down');
+            });
+        }
+
+        function setupItem(item, index) {
+            if (!item.dataset.id) {
+                item.dataset.id = 'item-' + (index != null ? index : Date.now() + '-' + Math.random().toString(16).slice(2));
+            }
+            const id = item.dataset.id;
+
+            // 저장된 값 적용
+            if (savedData && index != null && savedData[index]) {
+                const data = savedData[index];
+                const timeEl = item.querySelector('.time');
+                const placeEl = item.querySelector('.place');
+                const memoEl = item.querySelector('.memo');
+
+                if (timeEl && data.time) timeEl.textContent = data.time;
+                if (placeEl && data.title) placeEl.textContent = data.title;
+                if (memoEl && data.memo) memoEl.textContent = data.memo;
+
+                if (data.lat && data.lng) {
+                    item.setAttribute('data-lat', data.lat);
+                    item.setAttribute('data-lng', data.lng);
+                }
+                if (data.markerTitle) {
+                    item.setAttribute('data-title', data.markerTitle);
+                }
+            }
+
+            const latAttr = item.getAttribute('data-lat');
+            const lngAttr = item.getAttribute('data-lng');
+            let lat = latAttr ? parseFloat(latAttr) : NaN;
+            let lng = lngAttr ? parseFloat(lngAttr) : NaN;
+            let title = item.getAttribute('data-title') || item.querySelector('.place')?.textContent.trim();
 
             if (!isNaN(lat) && !isNaN(lng)) {
                 const marker = addMarker(lat, lng, title);
-                markers.push({ marker, lat, lng, title });
+                markersById.set(id, { marker, lat, lng, title, item });
 
                 item.addEventListener('click', () => {
-                    const moveLatLng = new kakao.maps.LatLng(lat, lng);
+                    selectedItem = item;
+
+                    // 선택 스타일
+                    getItems().forEach(el => el.classList.remove('selected'));
+                    item.classList.add('selected');
+
+                    // 최신 좌표 읽기
+                    const curLat = parseFloat(item.getAttribute('data-lat') || String(lat));
+                    const curLng = parseFloat(item.getAttribute('data-lng') || String(lng));
+                    const moveLatLng = new kakao.maps.LatLng(curLat, curLng);
                     map.panTo(moveLatLng);
 
                     const infoWindow = new kakao.maps.InfoWindow({
-                        content: '<div style="padding:6px 10px;font-size:12px;">' + title + '</div>'
+                        content: '<div style="padding:6px 10px;font-size:12px;">' + (title || '') + '</div>'
                     });
                     infoWindow.open(map, marker);
+
+                    // 편집기 채우기
+                    const timeEl = item.querySelector('.time');
+                    const placeEl = item.querySelector('.place');
+                    const memoEl = item.querySelector('.memo');
+                    const dayWrapper = item.closest('.day');
+                    const daySpan = dayWrapper?.querySelector('.day-title span');
+                    const dayTitle = dayWrapper?.querySelector('.day-title h2');
+
+                    editTime.value = (timeEl?.textContent || '').trim();
+                    editTitle.value = (placeEl?.textContent || '').replace(/\s+/g, ' ').trim();
+                    editMemo.value = (memoEl?.textContent || '').trim();
+                    editorDayLabel.textContent = (daySpan?.textContent || '') + ' · ' + (dayTitle?.textContent || '');
+
+                    editor.style.display = 'block';
+                });
+            } else {
+                // 좌표가 아직 없는 일정도 클릭하면 편집만 가능하도록
+                item.addEventListener('click', () => {
+                    selectedItem = item;
+                    getItems().forEach(el => el.classList.remove('selected'));
+                    item.classList.add('selected');
+
+                    const timeEl = item.querySelector('.time');
+                    const placeEl = item.querySelector('.place');
+                    const memoEl = item.querySelector('.memo');
+                    const dayWrapper = item.closest('.day');
+                    const daySpan = dayWrapper?.querySelector('.day-title span');
+                    const dayTitle = dayWrapper?.querySelector('.day-title h2');
+
+                    editTime.value = (timeEl?.textContent || '').trim();
+                    editTitle.value = (placeEl?.textContent || '').replace(/\s+/g, ' ').trim();
+                    editMemo.value = (memoEl?.textContent || '').trim();
+                    editorDayLabel.textContent = (daySpan?.textContent || '') + ' · ' + (dayTitle?.textContent || '');
+
+                    editor.style.display = 'block';
                 });
             }
-        });
+
+            attachMoveButtons(item);
+        }
+
+        // 초기 아이템 설정
+        getItems().forEach((item, index) => setupItem(item, index));
 
         if (!bounds.isEmpty()) {
             map.setBounds(bounds);
         }
+
+        function saveAllItemsToStorage() {
+            const data = [];
+            getItems().forEach((item) => {
+                const timeEl = item.querySelector('.time');
+                const placeEl = item.querySelector('.place');
+                const memoEl = item.querySelector('.memo');
+
+                data.push({
+                    time: timeEl?.textContent.trim() || '',
+                    title: placeEl?.textContent.trim() || '',
+                    memo: memoEl?.textContent.trim() || '',
+                    lat: item.getAttribute('data-lat') || '',
+                    lng: item.getAttribute('data-lng') || '',
+                    markerTitle: item.getAttribute('data-title') || ''
+                });
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function searchPlace() {
+            const keyword = mapSearchInput.value.trim();
+            if (!keyword) return;
+
+            places.keywordSearch(keyword, (data, status) => {
+                if (status !== kakao.maps.services.Status.OK || !data.length) {
+                    alert('검색 결과가 없습니다.');
+                    return;
+                }
+
+                const first = data[0];
+                const lat = parseFloat(first.y);
+                const lng = parseFloat(first.x);
+
+                if (isNaN(lat) || isNaN(lng)) return;
+
+                const position = new kakao.maps.LatLng(lat, lng);
+
+                if (!searchMarker) {
+                    searchMarker = new kakao.maps.Marker({
+                        position,
+                        map
+                    });
+                } else {
+                    searchMarker.setPosition(position);
+                    searchMarker.setMap(map);
+                }
+
+                map.setLevel(4);
+                map.panTo(position);
+
+                const infoWindow = new kakao.maps.InfoWindow({
+                    content: '<div style="padding:6px 10px;font-size:12px;">' + first.place_name + '</div>'
+                });
+                infoWindow.open(map, searchMarker);
+
+                // 선택된 일정이 있으면, 이 검색 결과를 그 일정의 위치로 사용할지 물어보기
+                if (selectedItem) {
+                    const useForItem = confirm('이 검색한 위치를 선택한 일정의 위치로 사용할까요?');
+                    if (useForItem) {
+                        const item = selectedItem;
+                        const id = item.dataset.id;
+                        item.setAttribute('data-lat', String(lat));
+                        item.setAttribute('data-lng', String(lng));
+
+                        let markerInfo = markersById.get(id);
+                        const title = item.getAttribute('data-title') || item.querySelector('.place')?.textContent.trim() || first.place_name;
+
+                        if (markerInfo && markerInfo.marker) {
+                            const newPos = new kakao.maps.LatLng(lat, lng);
+                            markerInfo.marker.setPosition(newPos);
+                            markerInfo.lat = lat;
+                            markerInfo.lng = lng;
+                            markerInfo.title = title;
+                        } else {
+                            const newMarker = addMarker(lat, lng, title);
+                            markerInfo = { marker: newMarker, lat, lng, title, item };
+                            markersById.set(id, markerInfo);
+                        }
+
+                        saveAllItemsToStorage();
+                    }
+                }
+            });
+        }
+
+        editorSave.addEventListener('click', () => {
+            if (!selectedItem) return;
+            const item = selectedItem;
+            const timeEl = item.querySelector('.time');
+            const placeEl = item.querySelector('.place');
+            const memoEl = item.querySelector('.memo');
+
+            // DOM 업데이트
+            if (timeEl) timeEl.textContent = editTime.value || timeEl.textContent;
+            if (placeEl) placeEl.textContent = editTitle.value || placeEl.textContent;
+            if (memoEl) memoEl.textContent = editMemo.value || memoEl.textContent;
+
+            const newTitle = editTitle.value.trim();
+            if (newTitle) {
+                item.setAttribute('data-title', newTitle);
+                const id = item.dataset.id;
+                const markerInfo = markersById.get(id);
+                if (markerInfo && markerInfo.marker) {
+                    markerInfo.title = newTitle;
+                }
+            }
+
+            // 전체 일정 저장
+            saveAllItemsToStorage();
+
+            editor.style.display = 'none';
+            getItems().forEach(el => el.classList.remove('selected'));
+            selectedItem = null;
+        });
+
+        editorCancel.addEventListener('click', () => {
+            editor.style.display = 'none';
+            getItems().forEach(el => el.classList.remove('selected'));
+            selectedItem = null;
+        });
+
+        mapSearchBtn.addEventListener('click', searchPlace);
+        mapSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                searchPlace();
+            }
+        });
+
+        // 각 Day에 "이 날 일정 추가하기" 버튼 동작
+        document.querySelectorAll('.day-add-btn').forEach((btn, dayIndex) => {
+            btn.addEventListener('click', () => {
+                const day = btn.closest('.day');
+                const ul = day?.querySelector('.schedule');
+                if (!ul) return;
+
+                const li = document.createElement('li');
+                li.className = 'item';
+                li.innerHTML = `
+                    <div class="time">00:00</div>
+                    <div class="info">
+                        <div class="place">새 일정 ${dayIndex + 1}</div>
+                        <div class="memo">메모를 적어보세요</div>
+                    </div>
+                `;
+
+                ul.appendChild(li);
+                setupItem(li);
+                saveAllItemsToStorage();
+            });
+        });
     </script>
 </body>
 </html>
