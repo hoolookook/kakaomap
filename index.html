@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경주 2박 3일 여행 가이드</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f4f5f7;
+            color: #222;
+            line-height: 1.6;
+            padding: 24px;
+        }
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        header {
+            padding: 24px 28px 16px;
+            border-bottom: 1px solid #eee;
+            background: linear-gradient(135deg, #1e88e5, #42a5f5);
+            color: #fff;
+        }
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+        header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        .tag {
+            display: inline-block;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 0;
+        }
+        @media (max-width: 900px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+        .map-section {
+            border-right: 1px solid #f0f0f0;
+            min-height: 420px;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+            min-height: 420px;
+        }
+        .plan-section {
+            padding: 20px 24px 24px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .day {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+        .day:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+        .day-title {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .day-title span {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        .day-title h2 {
+            font-size: 1.05rem;
+        }
+        .schedule {
+            list-style: none;
+        }
+        .item {
+            display: flex;
+            gap: 10px;
+            padding: 6px 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+        .item:hover {
+            background: #f5f9ff;
+            transform: translateY(-1px);
+        }
+        .time {
+            font-size: 0.8rem;
+            color: #757575;
+            width: 60px;
+            flex-shrink: 0;
+        }
+        .info {
+            flex: 1;
+        }
+        .place {
+            font-size: 0.96rem;
+            font-weight: 600;
+        }
+        .memo {
+            font-size: 0.8rem;
+            color: #616161;
+        }
+        .badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: #fce4ec;
+            color: #ad1457;
+            margin-left: 4px;
+        }
+        .tip {
+            font-size: 0.78rem;
+            color: #546e7a;
+            margin-top: 4px;
+        }
+        .hint-text {
+            font-size: 0.78rem;
+            color: #9e9e9e;
+            margin-top: 10px;
+        }
+    </style>
+    <!-- 카카오맵 JS SDK: YOUR_APP_KEY 부분을 본인 JavaScript 키로 교체하세요 -->
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=446b7354ca8a3a0f23a8c84a4fac64b5&libraries=services"></script>
+</head>
+<body>
+    <div class="page">
+        <header>
+            <h1>경주 2박 3일 여행 가이드</h1>
+            <p>불국사 · 대릉원 · 첨성대 · 황리단길까지 핵심 코스만 골라서 보는 일정입니다.</p>
+            <div class="tag">가볍게 보기 좋은 기본 코스</div>
+        </header>
+        <main>
+            <section class="map-section">
+                <div id="map"></div>
+            </section>
+            <section class="plan-section">
+                <div class="day">
+                    <div class="day-title">
+                        <span>DAY 1</span>
+                        <h2>경주 도착 · 시내 산책</h2>
+                    </div>
+                    <ul class="schedule">
+                        <li class="item" data-lat="35.842457" data-lng="129.191119" data-title="경주역">
+                            <div class="time">13:00</div>
+                            <div class="info">
+                                <div class="place">경주 도착 <span class="badge">출발</span></div>
+                                <div class="memo">숙소 체크인 전, 짐 보관 후 시내로 이동</div>
+                            </div>
+                        </li>
+                        <li class="item" data-lat="35.842642" data-lng="129.211493" data-title="황리단길">
+                            <div class="time">14:00</div>
+                            <div class="info">
+                                <div class="place">황리단길 카페 · 점심</div>
+                                <div class="memo">감성 카페/맛집이 몰려있는 거리, 여유 있게 둘러보기</div>
+                                <div class="tip">사람 많을 수 있어서 골목으로 들어가면 조용한 카페가 많아요.</div>
+                            </div>
+                        </li>
+                        <li class="item" data-lat="35.840245" data-lng="129.210914" data-title="대릉원">
+                            <div class="time">16:00</div>
+                            <div class="info">
+                                <div class="place">대릉원(천마총)</div>
+                                <div class="memo">고분공원 산책하면서 경주만의 분위기 느끼기</div>
+                            </div>
+                        </li>
+                        <li class="item" data-lat="35.839737" data-lng="129.210757" data-title="숙소 (시내)">
+                            <div class="time">18:00</div>
+                            <div class="info">
+                                <div class="place">시내 숙소 체크인</div>
+                                <div class="memo">저녁식사 후 황리단길 야간 산책</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="day">
+                    <div class="day-title">
+                        <span>DAY 2</span>
+                        <h2>불국사 · 석굴암 · 야경</h2>
+                    </div>
+                    <ul class="schedule">
+                        <li class="item" data-lat="35.788927" data-lng="129.331341" data-title="불국사">
+                            <div class="time">09:30</div>
+                            <div class="info">
+                                <div class="place">불국사</div>
+                                <div class="memo">경주의 대표 사찰, 아침 일찍 가면 한적하게 볼 수 있어요.</div>
+                            </div>
+                        </li>
+                        <li class="item" data-lat="35.794016" data-lng="129.349565" data-title="석굴암">
+                            <div class="time">11:30</div>
+                            <div class="info">
+                                <div class="place">석굴암</div>
+                                <div class="memo">버스 또는 택시 이동, 관람 시간 여유 있게 1시간 정도</div>
+                            </div>
+                        </li>
+                        <li class="item" data-lat="35.835454" data-lng="129.218204" data-title="동궁과 월지">
+                            <div class="time">18:30</div>
+                            <div class="info">
+                                <div class="place">동궁과 월지(안압지) 야경</div>
+                                <div class="memo">해 질 무렵 도착해서 해 지는 타이밍에 보는 것이 가장 예쁨</div>
+                                <div class="tip">야경 사진 찍기 좋으니 카메라/폰 배터리 체크!</div>
+                            </div>
+                        </li>
+                        <li class="item" data-lat="35.842642" data-lng="129.211493" data-title="황리단길 저녁">
+                            <div class="time">20:00</div>
+                            <div class="info">
+                                <div class="place">황리단길 저녁 식사</div>
+                                <div class="memo">한옥 감성 식당이나 술집에서 편하게 마무리</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="day">
+                    <div class="day-title">
+                        <span>DAY 3</span>
+                        <h2>첨성대 · 경주 시티투어</h2>
+                    </div>
+                    <ul class="schedule">
+                        <li class="item" data-lat="35.835277" data-lng="129.219595" data-title="첨성대">
+                            <div class="time">10:00</div>
+                            <div class="info">
+                                <div class="place">첨성대 주변 산책</div>
+                                <div class="memo">경주 대표 포토스팟, 주변 꽃밭/논길도 함께 산책</div>
+                            </div>
+                        </li>
+                        <li class="item" data-lat="35.838196" data-lng="129.224733" data-title="계림">
+                            <div class="time">11:00</div>
+                            <div class="info">
+                                <div class="place">계림</div>
+                                <div class="memo">숲길 걷기, 삼국시대 분위기 느끼기 좋은 곳</div>
+                            </div>
+                        </li>
+                        <li class="item" data-lat="35.842457" data-lng="129.191119" data-title="경주역 (귀가)">
+                            <div class="time">14:00</div>
+                            <div class="info">
+                                <div class="place">경주역으로 이동 · 귀가</div>
+                                <div class="memo">기념품 구매 후 집으로 출발</div>
+                            </div>
+                        </li>
+                    </ul>
+                    <p class="hint-text">각 일정 카드를 클릭하면 지도에서 해당 위치로 이동합니다.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // 기본 중심 좌표: 경주 시내 근처
+        const defaultCenter = new kakao.maps.LatLng(35.842642, 129.211493);
+
+        const mapContainer = document.getElementById('map');
+        const mapOption = {
+            center: defaultCenter,
+            level: 6
+        };
+
+        const map = new kakao.maps.Map(mapContainer, mapOption);
+        const bounds = new kakao.maps.LatLngBounds();
+        const geocoder = new kakao.maps.services.Geocoder();
+
+        function addMarker(lat, lng, title) {
+            const position = new kakao.maps.LatLng(lat, lng);
+            const marker = new kakao.maps.Marker({
+                position,
+                map,
+                title
+            });
+            bounds.extend(position);
+            return marker;
+        }
+
+        // 일정 리스트에서 좌표 읽어서 마커 생성
+        const items = document.querySelectorAll('.item');
+        const markers = [];
+
+        items.forEach((item, index) => {
+            const lat = parseFloat(item.getAttribute('data-lat'));
+            const lng = parseFloat(item.getAttribute('data-lng'));
+            const title = item.getAttribute('data-title') || item.querySelector('.place')?.textContent.trim();
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+                const marker = addMarker(lat, lng, title);
+                markers.push({ marker, lat, lng, title });
+
+                item.addEventListener('click', () => {
+                    const moveLatLng = new kakao.maps.LatLng(lat, lng);
+                    map.panTo(moveLatLng);
+
+                    const infoWindow = new kakao.maps.InfoWindow({
+                        content: '<div style="padding:6px 10px;font-size:12px;">' + title + '</div>'
+                    });
+                    infoWindow.open(map, marker);
+                });
+            }
+        });
+
+        if (!bounds.isEmpty()) {
+            map.setBounds(bounds);
+        }
+    </script>
+</body>
+</html>
