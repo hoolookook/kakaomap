@@ -56,6 +56,12 @@
             main {
                 grid-template-columns: 1fr;
             }
+            .plan-section {
+                max-height: none;
+            }
+            .page {
+                border-radius: 0;
+            }
         }
         .map-section {
             position: relative;
@@ -115,6 +121,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .editor-title span {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .editor-title small {
+            flex: 0 0 auto;
+            font-size: 0.75rem;
+            color: #78909c;
+            white-space: nowrap;
         }
         .editor-row {
             display: flex;
