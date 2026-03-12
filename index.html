@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>경주 2박 3일 여행 가이드</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.css" />
     <style>
         * {
             box-sizing: border-box;
@@ -11,14 +12,14 @@
             padding: 0;
         }
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: Pretendard, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: #f4f5f7;
             color: #222;
             line-height: 1.6;
             padding: 24px;
         }
         .page {
-            max-width: 1100px;
+            max-width: 1050px;
             margin: 0 auto;
             background: #ffffff;
             border-radius: 16px;
@@ -102,9 +103,72 @@
             color: #fff;
             white-space: nowrap;
         }
+        .map-search-results {
+            position: absolute;
+            top: 56px;
+            left: 12px;
+            right: 12px;
+            max-height: 260px;
+            overflow: auto;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+            z-index: 10;
+            border: 1px solid rgba(30, 136, 229, 0.15);
+        }
+        .map-search-results[hidden] {
+            display: none;
+        }
+        .search-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eef2f7;
+            cursor: pointer;
+        }
+        .search-item:last-child {
+            border-bottom: none;
+        }
+        .search-item:hover {
+            background: #f5f9ff;
+        }
+        .search-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .search-meta {
+            margin-top: 4px;
+            font-size: 0.78rem;
+            color: #607d8b;
+            line-height: 1.35;
+        }
+        .search-actions {
+            margin-top: 6px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .search-actions a {
+            font-size: 0.75rem;
+            color: #1565c0;
+            text-decoration: none;
+        }
+        .search-actions a:hover {
+            text-decoration: underline;
+        }
+        .search-badge {
+            font-size: 0.72rem;
+            color: #455a64;
+            background: #eceff1;
+            padding: 2px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
         .plan-section {
             padding: 20px 24px 24px;
-            max-height: 600px;
+            max-height: 550px;
             overflow-y: auto;
         }
         .editor {
@@ -289,14 +353,15 @@
 <body>
     <div class="page">
         <header>
-            <h1>경주 2박 3일 여행</h1>
+            <h1>경주</h1>
         </header>
         <main>
             <section class="map-section">
                 <div class="map-search">
-                    <input id="map-search-input" type="text" placeholder="지도에서 찾고 싶은 장소를 입력하세요 (예: 카페, 불국사 입구 등)">
+                    <input id="map-search-input" type="text" placeholder="장소 검색 ㅎ">
                     <button type="button" id="map-search-btn">검색</button>
                 </div>
+                <div id="map-search-results" class="map-search-results" hidden></div>
                 <div id="map"></div>
             </section>
             <section class="plan-section">
@@ -448,11 +513,14 @@
         const bounds = new kakao.maps.LatLngBounds();
         const geocoder = new kakao.maps.services.Geocoder();
         const places = new kakao.maps.services.Places();
+        const sharedInfoWindow = new kakao.maps.InfoWindow({ zIndex: 3 });
 
         // 검색 UI
         const mapSearchInput = document.getElementById('map-search-input');
         const mapSearchBtn = document.getElementById('map-search-btn');
+        const mapSearchResults = document.getElementById('map-search-results');
         let searchMarker = null;
+        let lastSearchData = [];
 
         // 편집기 엘리먼트
         const editor = document.getElementById('item-editor');
@@ -485,16 +553,21 @@
             const moveLatLng = new kakao.maps.LatLng(lat, lng);
             map.panTo(moveLatLng);
 
-            const infoWindow = new kakao.maps.InfoWindow({
-                content: '<div style="padding:6px 10px;font-size:12px;">' + (title || '') + '</div>'
-            });
-
-            if (searchMarker) {
-                infoWindow.open(map, searchMarker);
-            } else {
-                infoWindow.open(map);
-            }
+            sharedInfoWindow.close();
+            sharedInfoWindow.setContent('<div style="padding:6px 10px;font-size:12px;">' + (title || '') + '</div>');
+            if (searchMarker) sharedInfoWindow.open(map, searchMarker);
         }
+
+        function hideSearchResults() {
+            mapSearchResults.hidden = true;
+            mapSearchResults.innerHTML = '';
+            lastSearchData = [];
+        }
+
+        kakao.maps.event.addListener(map, 'click', () => {
+            sharedInfoWindow.close();
+            hideSearchResults();
+        });
 
         // 저장된 데이터가 있으면 불러오기
         const savedJson = localStorage.getItem(STORAGE_KEY);
@@ -615,10 +688,9 @@
                     const moveLatLng = new kakao.maps.LatLng(curLat, curLng);
                     map.panTo(moveLatLng);
 
-                    const infoWindow = new kakao.maps.InfoWindow({
-                        content: '<div style="padding:6px 10px;font-size:12px;">' + (title || '') + '</div>'
-                    });
-                    infoWindow.open(map, marker);
+                    sharedInfoWindow.close();
+                    sharedInfoWindow.setContent('<div style="padding:6px 10px;font-size:12px;">' + (title || '') + '</div>');
+                    sharedInfoWindow.open(map, marker);
 
                     // 편집기 채우기
                     const timeEl = item.querySelector('.time');
@@ -687,69 +759,118 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
+        function renderSearchResults() {
+            if (!lastSearchData.length) {
+                hideSearchResults();
+                return;
+            }
+
+            mapSearchResults.hidden = false;
+            mapSearchResults.innerHTML = lastSearchData.slice(0, 8).map((p, idx) => {
+                const address = p.road_address_name || p.address_name || '';
+                const phone = p.phone || '';
+                const category = p.category_name || '';
+                const url = p.place_url || '';
+                return `
+                    <div class="search-item" data-idx="${idx}">
+                        <div class="search-name">
+                            <div>${p.place_name || ''}</div>
+                            <div class="search-badge">${category ? category.split(' > ').pop() : '장소'}</div>
+                        </div>
+                        <div class="search-meta">
+                            ${address ? `주소: ${address}<br>` : ''}
+                            ${phone ? `전화: ${phone}` : ''}
+                        </div>
+                        <div class="search-actions">
+                            ${url ? `<a href="${url}" target="_blank" rel="noopener noreferrer">카카오맵에서 보기</a>` : `<span></span>`}
+                            <span class="search-badge">클릭하면 지도 이동</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            mapSearchResults.querySelectorAll('.search-item').forEach((el) => {
+                el.addEventListener('click', () => {
+                    const idx = parseInt(el.getAttribute('data-idx'), 10);
+                    const p = lastSearchData[idx];
+                    if (!p) return;
+
+                    const lat = parseFloat(p.y);
+                    const lng = parseFloat(p.x);
+                    if (isNaN(lat) || isNaN(lng)) return;
+
+                    const position = new kakao.maps.LatLng(lat, lng);
+                    if (!searchMarker) {
+                        searchMarker = new kakao.maps.Marker({ position, map });
+                    } else {
+                        searchMarker.setPosition(position);
+                        searchMarker.setMap(map);
+                    }
+
+                    map.setLevel(4);
+                    map.panTo(position);
+
+                    const address = p.road_address_name || p.address_name || '';
+                    const phone = p.phone || '';
+                    const category = p.category_name || '';
+
+                    const content = `
+                        <div style="padding:8px 10px;font-size:12px;line-height:1.35;max-width:240px;">
+                            <div style="font-weight:700;margin-bottom:4px;">${p.place_name || ''}</div>
+                            ${category ? `<div style="color:#607d8b;margin-bottom:4px;">${category}</div>` : ''}
+                            ${address ? `<div>주소: ${address}</div>` : ''}
+                            ${phone ? `<div>전화: ${phone}</div>` : ''}
+                        </div>
+                    `;
+
+                    sharedInfoWindow.close();
+                    sharedInfoWindow.setContent(content);
+                    sharedInfoWindow.open(map, searchMarker);
+
+                    // 선택된 일정이 있으면, 이 검색 결과를 그 일정의 위치로 사용할지 물어보기
+                    if (selectedItem) {
+                        const useForItem = confirm('이 검색한 위치를 선택한 일정의 위치로 사용할까요?');
+                        if (useForItem) {
+                            const item = selectedItem;
+                            const id = item.dataset.id;
+                            item.setAttribute('data-lat', String(lat));
+                            item.setAttribute('data-lng', String(lng));
+
+                            let markerInfo = markersById.get(id);
+                            const title = item.getAttribute('data-title') || item.querySelector('.place')?.textContent.trim() || p.place_name;
+
+                            if (markerInfo && markerInfo.marker) {
+                                const newPos = new kakao.maps.LatLng(lat, lng);
+                                markerInfo.marker.setPosition(newPos);
+                                markerInfo.lat = lat;
+                                markerInfo.lng = lng;
+                                markerInfo.title = title;
+                            } else {
+                                const newMarker = addMarker(lat, lng, title);
+                                markerInfo = { marker: newMarker, lat, lng, title, item };
+                                markersById.set(id, markerInfo);
+                            }
+
+                            saveAllItemsToStorage();
+                        }
+                    }
+                });
+            });
+        }
+
         function searchPlace() {
             const keyword = mapSearchInput.value.trim();
             if (!keyword) return;
 
             places.keywordSearch(keyword, (data, status) => {
                 if (status !== kakao.maps.services.Status.OK || !data.length) {
+                    lastSearchData = [];
+                    renderSearchResults();
                     alert('검색 결과가 없습니다.');
                     return;
                 }
-
-                const first = data[0];
-                const lat = parseFloat(first.y);
-                const lng = parseFloat(first.x);
-
-                if (isNaN(lat) || isNaN(lng)) return;
-
-                const position = new kakao.maps.LatLng(lat, lng);
-
-                if (!searchMarker) {
-                    searchMarker = new kakao.maps.Marker({
-                        position,
-                        map
-                    });
-                } else {
-                    searchMarker.setPosition(position);
-                    searchMarker.setMap(map);
-                }
-
-                map.setLevel(4);
-                map.panTo(position);
-
-                const infoWindow = new kakao.maps.InfoWindow({
-                    content: '<div style="padding:6px 10px;font-size:12px;">' + first.place_name + '</div>'
-                });
-                infoWindow.open(map, searchMarker);
-
-                // 선택된 일정이 있으면, 이 검색 결과를 그 일정의 위치로 사용할지 물어보기
-                if (selectedItem) {
-                    const useForItem = confirm('이 검색한 위치를 선택한 일정의 위치로 사용할까요?');
-                    if (useForItem) {
-                        const item = selectedItem;
-                        const id = item.dataset.id;
-                        item.setAttribute('data-lat', String(lat));
-                        item.setAttribute('data-lng', String(lng));
-
-                        let markerInfo = markersById.get(id);
-                        const title = item.getAttribute('data-title') || item.querySelector('.place')?.textContent.trim() || first.place_name;
-
-                        if (markerInfo && markerInfo.marker) {
-                            const newPos = new kakao.maps.LatLng(lat, lng);
-                            markerInfo.marker.setPosition(newPos);
-                            markerInfo.lat = lat;
-                            markerInfo.lng = lng;
-                            markerInfo.title = title;
-                        } else {
-                            const newMarker = addMarker(lat, lng, title);
-                            markerInfo = { marker: newMarker, lat, lng, title, item };
-                            markersById.set(id, markerInfo);
-                        }
-
-                        saveAllItemsToStorage();
-                    }
-                }
+                lastSearchData = data;
+                renderSearchResults();
             });
         }
 
